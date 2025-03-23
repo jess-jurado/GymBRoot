@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalles de la Rutina</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1 class="dashboard-title">Detalles de la Rutina: {{ rutina.nombre_rutina }}</h1>
+
+    <h2 class="dashboard-subtitle">Ejercicios</h2>
+
+    {% if ejercicios and ejercicios|length > 0 %}
+      <ul class="ejercicios-list">
+        {% for ejercicio in ejercicios %}
+          <li class="ejercicio-item">
+            <p><strong>{{ ejercicio[0] }}</strong></p>
+            <p><em>Repeticiones: {{ ejercicio[1] }} | Series: {{ ejercicio[2] }} | Grupo Muscular: {{ ejercicio[3] }}</em></p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No tienes ejercicios en esta rutina.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - GymApp</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1 class="dashboard-title">Bienvenido al Dashboard</h1>
+
+    <h2 class="dashboard-subtitle">Tus Rutinas</h2>
+
+    {% if rutinas and rutinas|length > 0 %}
+      <div class="rutinas-list">
+        {% for rutina in rutinas %}
+          <div class="rutina-item" ondblclick="window.location.href='/detalle_rutina/{{ rutina.id }}'">
+            <h3 class="rutina-name">{{ rutina.nombre_rutina }}</h3>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-rutinas-msg">No tienes rutinas creadas.</p>
+    {% endif %}
+
+    <a class="action-btn create-routine-btn" href="/api/crear_rutina">Crear Nueva Rutina</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Crear Rutina - GymApp</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="crear-rutina-container">
+    <h1>Crear Nueva Rutina</h1>
+
+    <div>
+      <label for="nombre_rutina">Nombre de la Rutina:</label><br>
+      <input type="text" id="nombre_rutina" required>
+    </div>
+
+    <h2>Selecciona el Día</h2>
+    <div id="days-container" class="button-group">
+      <button class="day-btn" data-day="Lunes">Lunes</button>
+      <button class="day-btn" data-day="Martes">Martes</button>
+      <button class="day-btn" data-day="Miércoles">Miércoles</button>
+      <button class="day-btn" data-day="Jueves">Jueves</button>
+      <button class="day-btn" data-day="Viernes">Viernes</button>
+      <button class="day-btn" data-day="Sábado">Sábado</button>
+      <button class="day-btn" data-day="Domingo">Domingo</button>
+    </div>
+
+    <h2>Selecciona Grupo Muscular</h2>
+    <div id="muscle-groups-container" class="button-group" style="display:none;">
+      <button class="group-btn" data-group="Piernas">Piernas</button>
+      <button class="group-btn" data-group="Abdominales">Abdominales</button>
+      <button class="group-btn" data-group="Biceps">Bíceps</button>
+      <button class="group-btn" data-group="Triceps">Tríceps</button>
+      <button class="group-btn" data-group="Espalda">Espalda</button>
+      <button class="group-btn" data-group="Pecho">Pecho</button>
+    </div>
+
+    <h2 id="subgroup-heading" style="display:none;">Selecciona Subgrupo</h2>
+    <div id="subgroups-container" class="button-group" style="display:none;"></div>
+
+    <h2 id="exercise-heading" style="display:none;">Ejercicios Disponibles</h2>
+    <div id="exercises-container"></div>
+
+    <button id="add-group">Agregar grupo a este día</button>
+
+    <hr>
+
+    <button id="submit-routine">Guardar Rutina</button>
+
+    <h2>Resumen</h2>
+    <div id="summary-container"></div>
+  </div>
+
+  <script>
+    let routineData = {};
+    let selectedDay = null;
+    let selectedGroup = null;
+    let selectedSubgroup = null;
+    let selectedExercises = [];
+
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    document.querySelectorAll('.day-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        selectedDay = button.getAttribute('data-day');
+        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+
+        if (!routineData[selectedDay]) {
+          routineData[selectedDay] = [];
+        }
+
+        document.getElementById('muscle-groups-container').style.display = 'block';
+      });
+    });
+
+    document.querySelectorAll('.group-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        selectedGroup = button.getAttribute('data-group');
+        document.querySelectorAll('.group-btn').forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+
+        selectedSubgroup = null;
+        selectedExercises = [];
+        document.getElementById('subgroups-container').innerHTML = "";
+        document.getElementById('exercises-container').innerHTML = "";
+
+        fetch(`/get_subgrupos?grupo=${selectedGroup}`)
+          .then(response => response.json())
+          .then(data => {
+            const subgroupsContainer = document.getElementById('subgroups-container');
+            subgroupsContainer.innerHTML = "";
+            data.subgrupos.forEach(sub => {
+              const btn = document.createElement('button');
+              btn.className = 'subgroup-btn';
+              btn.textContent = sub;
+              btn.setAttribute('data-subgroup', sub);
+              btn.addEventListener('click', () => {
+                document.querySelectorAll('.subgroup-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSubgroup = sub;
+                getExercises(selectedGroup, selectedSubgroup);
+              });
+              subgroupsContainer.appendChild(btn);
+            });
+            document.getElementById('subgroup-heading').style.display = 'block';
+            subgroupsContainer.style.display = 'block';
+          });
+      });
+    });
+
+    function getExercises(group, subgroup) {
+      fetch(`/get_ejercicios?grupo=${group}&subgrupo=${subgroup}`)
+        .then(response => response.json())
+        .then(data => {
+          const exercisesContainer = document.getElementById('exercises-container');
+          exercisesContainer.innerHTML = "";
+          selectedExercises = [];
+
+          data.ejercicios.forEach(ex => {
+            const exDiv = document.createElement('div');
+            exDiv.className = 'exercise';
+            exDiv.innerHTML = `<img src="${ex.imagen_url}" alt="${ex.Nombre_ejercicio}"><br>${ex.Nombre_ejercicio}`;
+            exDiv.setAttribute('data-id', ex.id);
+
+            exDiv.addEventListener('click', () => {
+              const exId = parseInt(exDiv.getAttribute('data-id'));
+              if (!routineData[selectedDay].some(e => e.ejercicios.includes(exId))) {
+                selectedExercises.push(exId);
+                exDiv.style.border = "2px solid red";
+              } else {
+                alert("Este ejercicio ya está agregado para este día.");
+              }
+            });
+
+            exercisesContainer.appendChild(exDiv);
+          });
+
+          document.getElementById('exercise-heading').style.display = 'block';
+          exercisesContainer.style.display = 'block';
+        });
+    }
+
+    document.getElementById('add-group').addEventListener('click', () => {
+      if (!selectedDay || !selectedGroup || !selectedSubgroup || selectedExercises.length === 0) {
+        alert("Selecciona un día, un grupo, un subgrupo y al menos un ejercicio.");
+        return;
+      }
+
+      routineData[selectedDay].push({
+        grupo: selectedGroup,
+        subgrupo: selectedSubgroup,
+        ejercicios: [...selectedExercises]
+      });
+
+      updateSummary();
+
+      selectedGroup = null;
+      selectedSubgroup = null;
+      selectedExercises = [];
+      document.getElementById('subgroups-container').innerHTML = "";
+      document.getElementById('exercises-container').innerHTML = "";
+      alert("Grupo agregado para " + selectedDay);
+    });
+
+    function updateSummary() {
+      const summaryContainer = document.getElementById('summary-container');
+      summaryContainer.innerHTML = "";
+
+      for (const day in routineData) {
+        const dayContainer = document.createElement('div');
+        dayContainer.innerHTML = `<h3>${day}</h3>`;
+
+        routineData[day].forEach(group => {
+          const p = document.createElement('p');
+          p.textContent = `${group.grupo} - ${group.subgrupo} - Ejercicios: ${group.ejercicios.join(", ")}`;
+          dayContainer.appendChild(p);
+        });
+
+        summaryContainer.appendChild(dayContainer);
+      }
+    }
+
+    // Enviar toda la rutina al servidor
+    document.getElementById('submit-routine').addEventListener('click', () => {
+      const routineName = document.getElementById('nombre_rutina').value;
+      if (!routineName || Object.keys(routineData).length === 0) {
+        alert("Debes completar todos los campos y agregar al menos un grupo de ejercicios.");
+        return;
+      }
+      const data = {
+        nombre_rutina: routineName,
+        dias: routineData
+      };
+      console.log("Enviando rutina:", data);
+      fetch('/api/rutinas', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        console.log("Respuesta del servidor:", result);
+        if (result.mensaje) {
+          alert(result.mensaje);
+          window.location.href = '/dashboard';
+        } else {
+          alert("Error: " + result.error);
+        }
+      })
+      .catch(error => console.error("Error al enviar la rutina:", error));
+    });
+  </script>
+</body>
+</html>

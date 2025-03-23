@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Rutina</title>
+    <script>
+        function crearRutina() {
+            var nombreRutina = document.getElementById('nombre_rutina').value;
+            var dia = document.getElementById('dia').value;
+            var idEjercicio = document.getElementById('id_ejercicio').value;
+            
+            var data = {
+                "nombre_rutina": nombreRutina,
+                "dia": dia,
+                "id_ejercicio": idEjercicio
+            };
+
+            fetch('/rutinas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')  // Asumiendo que el token está guardado en localStorage
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.mensaje) {
+                    alert(data.mensaje);
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Crear Rutina</h1>
+    <label for="nombre_rutina">Nombre de la Rutina:</label>
+    <input type="text" id="nombre_rutina" required><br>
+
+    <label for="dia">Día:</label>
+    <input type="text" id="dia"><br>
+
+    <label for="id_ejercicio">ID Ejercicio:</label>
+    <input type="number" id="id_ejercicio" required><br>
+
+    <button onclick="crearRutina()">Crear Rutina</button>
+</body>
+</html>

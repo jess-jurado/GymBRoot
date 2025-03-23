@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GymBRoot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+  <header>
+    <h1>Bienvenido a GymBRoot</h1>
+  </header>
+
+  <nav>
+    <a href="{{ url_for('login') }}"><button>Iniciar Sesión</button></a>
+    <a href="{{ url_for('register') }}"><button>Registrarse</button></a>
+  </nav>
+
+  <section id="workouts">
+    <h2>Entrenamientos Disponibles</h2>
+    <ul id="workout-list"></ul>
+  </section>
+
+  <script>
+    // Cargar los entrenamientos desde el backend
+    fetch('/api/entrenamientos') // Ajusta la URL al endpoint de tu backend
+      .then(response => response.json())
+      .then(data => {
+        const workoutList = document.getElementById('workout-list');
+        data.forEach(workout => {
+          const li = document.createElement('li');
+          li.textContent = workout.nombre; // Asume que el modelo 'workout' tiene el atributo 'nombre'
+          workoutList.appendChild(li);
+        });
+      })
+      .catch(error => console.error('Error al cargar los entrenamientos:', error));
+  </script>
+</body>
+</html>
