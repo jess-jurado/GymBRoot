@@ -266,63 +266,92 @@ def obtener_rutinas():
 
 @app.route('/dashboard')
 def dashboard():
-    # Verificar que el usuario esté autenticado
     user_id = session.get("user_id")
     if not user_id:
         flash("Debes iniciar sesión para ver el dashboard.", "error")
         return redirect(url_for("login"))
-    
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Consulta solo las rutinas del usuario autenticado, sin obtener los ejercicios
+
+    # Obtener rutinas únicas con su ID
     cursor.execute("SELECT id, Nombre_rutina FROM Rutinas WHERE Usuario_id = ?", (user_id,))
     rows = cursor.fetchall()
-    
+
+    nombres_unicos = set()
     rutinas = []
+
     for row in rows:
-        rutina = {
-            "id": row[0],
-            "nombre_rutina": row[1]
-        }
-        rutinas.append(rutina)
-    
+        rutina_id, nombre_rutina = row
+        if nombre_rutina not in nombres_unicos:
+            nombres_unicos.add(nombre_rutina)
+            rutinas.append({"id": rutina_id, "nombre_rutina": nombre_rutina})
+
     cursor.close()
     conn.close()
-    
+
     return render_template('dashboard.html', rutinas=rutinas)
+
 
 
 @app.route('/detalle_rutina/<int:id>')
 def detalle_rutina(id):
-    # Establecer conexión con la base de datos
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Obtener los detalles de la rutina
-    query_rutina = """
-        SELECT id, nombre_rutina
-        FROM Rutinas
-        WHERE id = %s
-    """
+    query_rutina = "SELECT id, Nombre_rutina, Usuario_id FROM Rutinas WHERE id = ?"
     cursor.execute(query_rutina, (id,))
     rutina = cursor.fetchone()
 
-    # Obtener los ejercicios asociados a la rutina
+    if not rutina:
+        flash("Rutina no encontrada.", "error")
+        return redirect(url_for("dashboard"))
+
+    rutina_id = rutina[0]
+    nombre_rutina = rutina[1]
+    usuario_id = rutina[2]
+
+    # Obtener los ejercicios agrupados por día
     query_ejercicios = """
-        SELECT nombre, repeticiones, series
-        FROM Ejercicios
-        WHERE rutina_id = %s
+        SELECT r.Dia, e.Nombre_ejercicio, e.Subgrupo_muscular
+        FROM Rutinas r
+        INNER JOIN Ejercicios e ON r.Id_ejercicio = e.id
+        WHERE r.Nombre_rutina = ? AND r.Usuario_id = ?
     """
-    cursor.execute(query_ejercicios, (id,))
+    cursor.execute(query_ejercicios, (nombre_rutina, usuario_id))
     ejercicios = cursor.fetchall()
 
-    # Cerrar la conexión a la base de datos
     cursor.close()
     conn.close()
 
-    # Pasar los datos a la plantilla
-    return render_template('detalle_rutina.html', rutina=rutina, ejercicios=ejercicios)
+    if not ejercicios:
+        flash("No hay ejercicios en esta rutina.", "warning")
+
+    # Definir el orden correcto de los días de la semana
+    orden_dias = {
+        "Lunes": 1, "Martes": 2, "Miércoles": 3, "Jueves": 4,
+        "Viernes": 5, "Sábado": 6, "Domingo": 7
+    }
+
+    # Organizar los ejercicios por día en un diccionario
+    ejercicios_por_dia = {}
+    for dia, ejercicio, subgrupo in ejercicios:
+        if dia not in ejercicios_por_dia:
+            ejercicios_por_dia[dia] = []
+        ejercicios_por_dia[dia].append({"Nombre_ejercicio": ejercicio, "Subgrupo_muscular": subgrupo})
+
+    # Ordenar el diccionario de ejercicios según el orden de los días de la semana
+    ejercicios_por_dia_ordenado = dict(sorted(ejercicios_por_dia.items(), key=lambda x: orden_dias.get(x[0], 999)))
+
+    return render_template(
+        'detalle_rutina.html',
+        rutina={"id": rutina_id, "Nombre_rutina": nombre_rutina},
+        ejercicios_por_dia=ejercicios_por_dia_ordenado
+    )
+
+
+
 
 # Registrar las rutas
 app.register_blueprint(auth_bp)

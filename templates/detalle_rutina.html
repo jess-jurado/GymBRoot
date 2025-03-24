@@ -7,22 +7,37 @@
 </head>
 <body>
   <div class="dashboard-container">
-    <h1 class="dashboard-title">Detalles de la Rutina: {{ rutina.nombre_rutina }}</h1>
+    <h1 class="dashboard-title">Detalles de la Rutina: {{ rutina.Nombre_rutina }}</h1>
 
-    <h2 class="dashboard-subtitle">Ejercicios</h2>
+    {% if ejercicios_por_dia %}
+      {% for dia, ejercicios in ejercicios_por_dia.items() %}
+      <div class="dia-container">
+        <h2 class="dia-title">{{ dia }}</h2> <!-- Título del día -->
 
-    {% if ejercicios and ejercicios|length > 0 %}
-      <ul class="ejercicios-list">
-        {% for ejercicio in ejercicios %}
-          <li class="ejercicio-item">
-            <p><strong>{{ ejercicio[0] }}</strong></p>
-            <p><em>Repeticiones: {{ ejercicio[1] }} | Series: {{ ejercicio[2] }} | Grupo Muscular: {{ ejercicio[3] }}</em></p>
-          </li>
-        {% endfor %}
-      </ul>
+        <div class="ejercicios-list">
+          {% for ejercicio in ejercicios %}
+          <button class="ejercicio-btn" data-ejercicio="{{ ejercicio.Nombre_ejercicio }}" data-subgrupo="{{ ejercicio.Subgrupo_muscular }}">
+            <strong>{{ ejercicio.Nombre_ejercicio }}</strong><br>
+            <em>{{ ejercicio.Subgrupo_muscular }}</em>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
     {% else %}
       <p>No tienes ejercicios en esta rutina.</p>
     {% endif %}
   </div>
+
+  <script>
+    // Generar colores aleatorios para los botones
+    document.addEventListener("DOMContentLoaded", function () {
+      const botones = document.querySelectorAll(".ejercicio-btn");
+      botones.forEach(boton => {
+        let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+        boton.style.backgroundColor = randomColor;
+      });
+    });
+  </script>
 </body>
 </html>

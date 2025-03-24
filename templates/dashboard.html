@@ -14,9 +14,9 @@
     {% if rutinas and rutinas|length > 0 %}
       <div class="rutinas-list">
         {% for rutina in rutinas %}
-          <div class="rutina-item" ondblclick="window.location.href='/detalle_rutina/{{ rutina.id }}'">
-            <h3 class="rutina-name">{{ rutina.nombre_rutina }}</h3>
-          </div>
+        <div class="rutina-item" ondblclick="window.location.href='/detalle_rutina/{{ rutina.id }}'">
+          <h3 class="rutina-name">{{ rutina.nombre_rutina }}</h3>
+      </div>
         {% endfor %}
       </div>
     {% else %}
