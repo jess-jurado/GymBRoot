@@ -314,7 +314,7 @@ def detalle_rutina(id):
 
     # Obtener los ejercicios agrupados por día
     query_ejercicios = """
-        SELECT r.Dia, e.Nombre_ejercicio, e.Subgrupo_muscular
+        SELECT r.Dia, e.id, e.Nombre_ejercicio, e.Subgrupo_muscular
         FROM Rutinas r
         INNER JOIN Ejercicios e ON r.Id_ejercicio = e.id
         WHERE r.Nombre_rutina = ? AND r.Usuario_id = ?
@@ -336,10 +336,10 @@ def detalle_rutina(id):
 
     # Organizar los ejercicios por día en un diccionario
     ejercicios_por_dia = {}
-    for dia, ejercicio, subgrupo in ejercicios:
+    for dia, ejercicio_id, ejercicio, subgrupo in ejercicios:
         if dia not in ejercicios_por_dia:
             ejercicios_por_dia[dia] = []
-        ejercicios_por_dia[dia].append({"Nombre_ejercicio": ejercicio, "Subgrupo_muscular": subgrupo})
+        ejercicios_por_dia[dia].append({"id": ejercicio_id,"Nombre_ejercicio": ejercicio, "Subgrupo_muscular": subgrupo})
 
     # Ordenar el diccionario de ejercicios según el orden de los días de la semana
     ejercicios_por_dia_ordenado = dict(sorted(ejercicios_por_dia.items(), key=lambda x: orden_dias.get(x[0], 999)))
@@ -348,6 +348,44 @@ def detalle_rutina(id):
         'detalle_rutina.html',
         rutina={"id": rutina_id, "Nombre_rutina": nombre_rutina},
         ejercicios_por_dia=ejercicios_por_dia_ordenado
+    )
+
+@app.route('/detalle_ejercicio/<int:rutina_id>/<int:ejercicio_id>', methods=['GET'])
+def detalle_ejercicio(rutina_id, ejercicio_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Obtener detalles del ejercicio específico dentro de la rutina
+    query_ejercicio = """
+        SELECT e.id, e.Nombre_ejercicio, e.Subgrupo_muscular, e.imagen_url
+        FROM Ejercicios e
+        JOIN Rutinas r ON e.id = r.Id_ejercicio
+        WHERE r.Nombre_rutina = (SELECT Nombre_rutina FROM Rutinas WHERE id = ?) 
+        AND e.id = ?
+    """
+    cursor.execute(query_ejercicio, (rutina_id, ejercicio_id))
+    ejercicio = cursor.fetchone()
+
+    # **Evitar el error si no se encuentra el ejercicio**
+    if not ejercicio:
+        flash("No se encontró el ejercicio en esta rutina.", "error")
+        return redirect(url_for('dashboard'))
+
+    # Asignar variables después de verificar que `ejercicio` no es None
+    nombre_ejercicio = ejercicio[1]
+    subgrupo_muscular = ejercicio[2]
+    prefijo_imagen = ejercicio[3]
+    
+    imagen_url_ = buscar_imagen_en_cloudinary(prefijo_imagen) if prefijo_imagen else None
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        'detalle_ejercicio.html',
+        nombre_ejercicio=nombre_ejercicio,
+        subgrupo_muscular=subgrupo_muscular,
+        imagen_url=imagen_url_
     )
 
 

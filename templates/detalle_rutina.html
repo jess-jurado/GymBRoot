@@ -16,7 +16,7 @@
 
         <div class="ejercicios-list">
           {% for ejercicio in ejercicios %}
-          <button class="ejercicio-btn" data-ejercicio="{{ ejercicio.Nombre_ejercicio }}" data-subgrupo="{{ ejercicio.Subgrupo_muscular }}">
+          <button class="ejercicio-btn" onclick="irADetalleEjercicio('{{ rutina.id }}', '{{ ejercicio.id }}')">
             <strong>{{ ejercicio.Nombre_ejercicio }}</strong><br>
             <em>{{ ejercicio.Subgrupo_muscular }}</em>
           </button>
@@ -30,6 +30,14 @@
   </div>
 
   <script>
+    function irADetalleEjercicio(rutinaId, ejercicioId) {
+    if (!rutinaId || !ejercicioId) {
+      console.error("ID de rutina o ejercicio no definido.");
+      return;
+    }
+    window.location.href = `/detalle_ejercicio/${rutinaId}/${ejercicioId}`;
+  }
+
     // Generar colores aleatorios para los botones
     document.addEventListener("DOMContentLoaded", function () {
       const botones = document.querySelectorAll(".ejercicio-btn");

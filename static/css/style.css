@@ -204,3 +204,114 @@ header {
 .ejercicio-btn:hover {
   transform: scale(1.05);
 }
+
+.ejercicio-container {
+  max-width: 800px;
+  margin: 40px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.ejercicio-container h1,
+.ejercicio-container h2 {
+  color: #333;
+}
+
+/* Cabecera del ejercicio */
+.ejercicio-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ejercicio-header h1 {
+  font-size: 32px;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.ejercicio-header h2 {
+  font-size: 18px;
+  color: #7f8c8d;
+  margin-top: 10px;
+}
+
+.ejercicio-imagen {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Imagen responsive */
+.img-responsive {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ejercicio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #34495e;
+}
+
+.input-group input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #3498db;
+}
+
+/* Botones */
+.btn {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+}
+
+.submit-btn {
+  display: flex;
+  justify-content: center;
+}
+
+.back-btn {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
