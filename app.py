@@ -12,6 +12,8 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from routes.rutina_routes import buscar_imagen_en_cloudinary
+from datetime import datetime
+
 
 
 import pyodbc
@@ -385,10 +387,39 @@ def detalle_ejercicio(rutina_id, ejercicio_id):
         'detalle_ejercicio.html',
         nombre_ejercicio=nombre_ejercicio,
         subgrupo_muscular=subgrupo_muscular,
-        imagen_url=imagen_url_
+        imagen_url=imagen_url_,
+        ejercicio_id=ejercicio_id
     )
 
+@app.route('/guardar_series/<int:ejercicio_id>', methods=['POST'])
+def guardar_series(ejercicio_id):
+    data = request.get_json(force=True)  # Forzar interpretación JSON
+    series = data.get('series', [])
 
+    if not series:
+        return jsonify({"error": "No se enviaron datos"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    fecha_actual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    for serie in series:
+        repeticiones = serie.get('repeticiones')
+        peso = serie.get('peso')
+
+        if repeticiones is None or peso is None:
+            return jsonify({"error": "Datos incompletos"}), 400
+        
+        cursor.execute("""
+            INSERT INTO Series (Id_ejercicio, Series, Repeticiones, Peso, Fecha)
+            VALUES (?, ?, ?, ?, ?)
+        """, (ejercicio_id, serie['serie'], repeticiones, peso, fecha_actual))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Datos guardados correctamente"}), 200
 
 
 # Registrar las rutas
