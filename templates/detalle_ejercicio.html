@@ -106,6 +106,32 @@
     })
     .catch(error => console.error("Error al guardar:", error));
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fecha = urlParams.get("fecha");
+    const ejercicioId = "{{ ejercicio_id }}";
+
+    if (fecha && ejercicioId) {
+        fetch(`/api/obtener_series/${ejercicioId}/${fecha}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.log("No hay series registradas en esta fecha.");
+                    return;
+                }
+
+                document.getElementById("series").value = data.series.length;
+                generarSeries(); // Generar los campos antes de rellenarlos
+
+                data.series.forEach(serie => {
+                    document.getElementById(`repeticiones_${serie.serie}`).value = serie.repeticiones;
+                    document.getElementById(`peso_${serie.serie}`).value = serie.peso;
+                });
+            })
+            .catch(error => console.error("Error al obtener series:", error));
+    }
+});
   </script>
 </body>
 </html>

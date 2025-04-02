@@ -13,7 +13,7 @@ import cloudinary.uploader
 import cloudinary.api
 from routes.rutina_routes import buscar_imagen_en_cloudinary
 from datetime import datetime
-
+import locale
 
 
 import pyodbc
@@ -82,33 +82,7 @@ def login():
 
     return render_template("login.html")
 # # # Ruta para la página de inicio (después de login)
-# # @app.route('/dashboard')
-# # def dashboard():
-# #     # Verificar que el usuario esté autenticado
-# #     user_id = session.get("user_id")
-# #     if not user_id:
-# #         flash("Debes iniciar sesión para ver el dashboard.", "error")
-# #         return redirect(url_for("login"))
-    
-# #     conn = get_db_connection()
-# #     cursor = conn.cursor()
-    
-# #     # Consulta las rutinas del usuario autenticado
-# #     cursor.execute("SELECT id, Nombre_rutina FROM Rutinas WHERE Usuario_id = ?", (user_id,))
-# #     rows = cursor.fetchall()
-    
-# #     rutinas = []
-# #     for row in rows:
-# #         rutina = {
-# #             "id": row[0],
-# #             "nombre_rutina": row[1]
-# #         }
-# #         rutinas.append(rutina)
-    
-# #     cursor.close()
-# #     conn.close()
-    
-# #     return render_template('dashboard.html', rutinas=rutinas)
+
 
 @rutinas_bp.route("/crear_rutina", methods=["GET"])
 def mostrar_formulario_crear_rutina():
@@ -134,49 +108,6 @@ def get_subgrupos():
     
     # Devolver los subgrupos como respuesta
     return jsonify({'subgrupos': [subgrupo[0] for subgrupo in subgrupos]})
-
-
-# # @app.route('/get_ejercicios', methods=['GET'])
-# # def get_ejercicios():
-# #     grupo = request.args.get('grupo')
-# #     subgrupo = request.args.get('subgrupo')
-
-# #     # Establecer conexión con la base de datos
-# #     conn = get_db_connection()
-# #     cursor = conn.cursor()
-
-# #     # Consulta SQL para obtener los ejercicios del grupo y subgrupo seleccionados
-# #     query = """
-# #         SELECT Nombre_ejercicio, imagen_url, Subgrupo_muscular
-# #         FROM Ejercicios
-# #         WHERE Grupo_muscular = ? AND Subgrupo_muscular = ?
-# #     """
-# #     cursor.execute(query, (grupo, subgrupo))
-
-# #     # Recuperar los resultados
-# #     rows = cursor.fetchall()
-# #     # Convertir los resultados a un diccionario y construir la URL de la imagen
-# #     ejercicios = []
-# #     for row in rows:
-# #         # Generar la URL de la imagen en Google Drive
-# #         prefijo_imagen = row[1]
-# #         imagen_url = buscar_imagen_en_cloudinary(prefijo_imagen) # Genera la URL pública segura
-
-# #         # imagen_url = f"https://drive.google.com/uc?export=view&id={row[1]}"
-
-# #         ejercicio = {
-# #             'Nombre_ejercicio': row[0],
-# #             'imagen_url': imagen_url,  # URL generada aquí
-# #             'Subgrupo_muscular': row[2]
-# #         }
-# #         ejercicios.append(ejercicio)
-
-# #     # Cerrar la conexión a la base de datos
-# #     cursor.close()
-# #     conn.close()
-
-# #     # Enviar los datos como respuesta JSON
-# #     return jsonify({"ejercicios": ejercicios})
 
 @app.route('/get_ejercicios', methods=['GET'])
 def get_ejercicios():
@@ -221,35 +152,6 @@ def get_ejercicios():
 
     # Enviar los datos como respuesta JSON
     return jsonify({"ejercicios": ejercicios})
-
-
-# # @app.route('/dashboard')
-# # def dashboard():
-# #     # Establecer conexión con la base de datos
-# #     conn = get_db_connection()
-# #     cursor = conn.cursor()
-
-# #     # Obtener el ID del usuario desde la sesión (o el método de autenticación que uses)
-# #     user_id = session.get('user_id')  # Cambia esto según cómo manejes la autenticación
-
-# #     # Obtener solo las rutinas del usuario
-# #     query = """
-# #         SELECT id, nombre_rutina
-# #         FROM Rutinas
-# #         WHERE Usuario_id = ?  # Filtrar por el ID del usuario
-# #     """
-# #     cursor.execute(query, (user_id,))
-# #     rutinas = cursor.fetchall()
-
-# #     # Imprimir las rutinas para depuración
-# #     print(rutinas)
-
-# #     # Cerrar la conexión a la base de datos
-# #     cursor.close()
-# #     conn.close()
-
-# #     # Pasar las rutinas a la plantilla
-# #     return render_template('dashboard.html', rutinas=rutinas)
 
 # Asumiendo que ya tienes una conexión a la base de datos
 def obtener_rutinas():
@@ -395,6 +297,9 @@ def detalle_ejercicio(rutina_id, ejercicio_id):
 def guardar_series(ejercicio_id):
     data = request.get_json(force=True)  # Forzar interpretación JSON
     series = data.get('series', [])
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401
 
     if not series:
         return jsonify({"error": "No se enviaron datos"}), 400
@@ -412,14 +317,90 @@ def guardar_series(ejercicio_id):
             return jsonify({"error": "Datos incompletos"}), 400
         
         cursor.execute("""
-            INSERT INTO Series (Id_ejercicio, Series, Repeticiones, Peso, Fecha)
-            VALUES (?, ?, ?, ?, ?)
-        """, (ejercicio_id, serie['serie'], repeticiones, peso, fecha_actual))
+            INSERT INTO Historial (Id_ejercicio, Series, Repeticiones, Peso, Fecha, Usuario_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (ejercicio_id, serie['serie'], repeticiones, peso, fecha_actual, user_id))
 
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Datos guardados correctamente"}), 200
+
+@app.route('/api/obtener_fechas_entrenamiento', methods=['GET'])
+def obtener_fechas_entrenamiento():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Consultar las fechas únicas de entrenamiento en la tabla Series
+    query = "SELECT DISTINCT Fecha FROM Historial ORDER BY Fecha ASC"
+    cursor.execute(query)
+    
+    # Obtener los resultados y convertirlos a una lista
+    fechas = [row[0].split(" ")[0] for row in cursor.fetchall()]  # Solo tomamos la parte de la fecha
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"fechas": fechas})
+
+@app.route('/api/obtener_series/<int:ejercicio_id>/<fecha>', methods=['GET'])
+def obtener_series(ejercicio_id, fecha):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT Series, Repeticiones, Peso
+        FROM Historial
+        WHERE Id_ejercicio = ? AND Fecha LIKE ? AND Usuario_id = ?
+        ORDER BY Series ASC
+    """
+    cursor.execute(query, (ejercicio_id, f"{fecha}%", user_id))
+    series = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    if not series:
+        return jsonify({"error": "No se encontraron series para este ejercicio en la fecha indicada."}), 404
+
+    return jsonify({"series": [{"serie": row[0], "repeticiones": row[1], "peso": row[2]} for row in series]})
+
+# Configurar la localización en español para obtener el nombre del día correctamente
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+@app.route('/entrenamientos_realizados/<fecha>', methods=['GET'])
+def entrenamientos_realizados(fecha):
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Buscar ejercicios realizados ese día por el usuario
+    query = """
+        SELECT DISTINCT e.id, e.Nombre_ejercicio, e.Subgrupo_muscular, e.Grupo_muscular
+        FROM Historial h
+        JOIN Ejercicios e ON h.Id_ejercicio = e.id
+        WHERE h.Fecha LIKE ? AND h.Usuario_id = ?
+    """
+    cursor.execute(query, (f"{fecha}%", user_id))
+    
+    ejercicios = [
+        {"id": row[0], "nombre": row[1], "subgrupo": row[2], "grupo": row[3]} 
+        for row in cursor.fetchall()
+    ]
+
+    cursor.close()
+    conn.close()
+
+    return render_template("entrenamientos_realizados.html", ejercicios=ejercicios, fecha=fecha, user_id=user_id)
+
+
 
 
 # Registrar las rutas

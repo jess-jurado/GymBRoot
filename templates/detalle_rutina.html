@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Detalles de la Rutina</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -27,6 +29,9 @@
     {% else %}
       <p>No tienes ejercicios en esta rutina.</p>
     {% endif %}
+
+    <button id="verEntrenamientos" class="btn">Entrenamientos Realizados</button>
+    <div id="calendario" style="display: none; margin-top: 20px;"></div>
   </div>
 
   <script>
@@ -45,6 +50,32 @@
         let randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
         boton.style.backgroundColor = randomColor;
       });
+    });
+
+    document.getElementById("verEntrenamientos").addEventListener("click", function() {
+      document.getElementById("calendario").style.display = "block";
+      fetch("/api/obtener_fechas_entrenamiento")
+        .then(response => response.json())
+        .then(data => {
+          let calendarEl = document.getElementById("calendario");
+          let calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            events: data.fechas.map(fecha => ({
+              title: "Entrenamiento",
+              start: fecha,
+              backgroundColor: "#f39c12",
+              borderColor: "#e67e22",
+              classNames: ["evento-entrenamiento"]
+            })),
+            dateClick: function(info) {
+              if (data.fechas.includes(info.dateStr)) {
+                window.location.href = `/entrenamientos_realizados/${info.dateStr}`;
+              }
+            }
+          });
+          calendar.render();
+        })
+        .catch(error => console.error("Error al cargar el calendario:", error));
     });
   </script>
 </body>

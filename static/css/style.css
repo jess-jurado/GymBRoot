@@ -201,6 +201,16 @@ header {
   transition: transform 0.2s ease-in-out;
 }
 
+.ejercicio-view-btn {
+  color: black !important; /* Asegura que el texto sea negro */
+  background-color: #f0f0f0; /* Un color de fondo para que se vea mejor */
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 5px;
+  display: block;
+}
+
+
 .ejercicio-btn:hover {
   transform: scale(1.05);
 }
@@ -314,4 +324,15 @@ header {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+}
+
+#detalle-ejercicio {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto; /* Centrar y dar espacio */
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }

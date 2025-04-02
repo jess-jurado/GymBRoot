@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrenamientos Realizados - {{ fecha }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Entrenamientos del Día - {{ fecha }}</h1>
+    </header>
+    
+    <div class="dashboard-container">
+        <h2 class="dashboard-title">Entrenamientos del Día</h2>
+        <p class="dashboard-subtitle">Selecciona un grupo muscular</p>
+        
+        <div class="ejercicios-list" id="grupo-muscular-container">
+            <!-- Aquí se insertarán dinámicamente los grupos musculares -->
+        </div>
+    </div>
+    
+    <script type="application/json" id="data-entrenamientos">
+        {{ ejercicios | tojson }}
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const entrenamientos = JSON.parse(document.getElementById("data-entrenamientos").textContent);
+            const container = document.getElementById("grupo-muscular-container");
+            
+            if (entrenamientos.length === 0) {
+                container.innerHTML = "<p>No hay entrenamientos registrados para esta fecha.</p>";
+                return;
+            }
+            
+            let estructura = {};
+            entrenamientos.forEach(ejercicio => {
+                let grupo = ejercicio["grupo"];
+                let subgrupo = ejercicio["subgrupo"];
+                let nombre = ejercicio["nombre"];
+                let id = ejercicio["id"];
+                let imagen = ejercicio["imagen"];
+                
+                if (!estructura[grupo]) {
+                    estructura[grupo] = {};
+                }
+                if (!estructura[grupo][subgrupo]) {
+                    estructura[grupo][subgrupo] = [];
+                }
+                estructura[grupo][subgrupo].push({ id, nombre, imagen });
+            });
+            
+            Object.keys(estructura).forEach(grupo => {
+                let grupoContainer = document.createElement("div");
+                grupoContainer.classList.add("grupo-container");
+                
+                let tituloGrupo = document.createElement("h2");
+                tituloGrupo.textContent = grupo;
+                tituloGrupo.style.cursor = "pointer";
+                tituloGrupo.onclick = () => toggleSubgrupo(subgruposContainer);
+                grupoContainer.appendChild(tituloGrupo);
+                
+                let subgruposContainer = document.createElement("div");
+                subgruposContainer.classList.add("subgrupos-container");
+                subgruposContainer.style.display = "none";
+                
+                Object.keys(estructura[grupo]).forEach(subgrupo => {
+                    let subgrupoContainer = document.createElement("div");
+                    subgrupoContainer.classList.add("subgrupo-container");
+                    
+                    let tituloSubgrupo = document.createElement("h3");
+                    tituloSubgrupo.textContent = subgrupo;
+                    tituloSubgrupo.style.cursor = "pointer";
+                    tituloSubgrupo.onclick = () => toggleEjercicios(ejerciciosContainer);
+                    subgrupoContainer.appendChild(tituloSubgrupo);
+                    
+                    let ejerciciosContainer = document.createElement("div");
+                    ejerciciosContainer.classList.add("ejercicios-container");
+                    ejerciciosContainer.style.display = "none";
+                    
+                    estructura[grupo][subgrupo].forEach(ejercicio => {
+                        let btn = document.createElement("button");
+                        btn.textContent = ejercicio.nombre;
+                        btn.classList.add("ejercicio-view-btn");
+                        btn.onclick = () => mostrarEjercicio(ejercicio.id, ejercicio.nombre, ejercicio.imagen);
+                        ejerciciosContainer.appendChild(btn);
+                    });
+                    
+                    subgrupoContainer.appendChild(ejerciciosContainer);
+                    subgruposContainer.appendChild(subgrupoContainer);
+                });
+                
+                grupoContainer.appendChild(subgruposContainer);
+                container.appendChild(grupoContainer);
+            });
+        });
+        
+        function toggleSubgrupo(container) {
+            container.style.display = container.style.display === "none" ? "block" : "none";
+        }
+        
+        function toggleEjercicios(container) {
+            container.style.display = container.style.display === "none" ? "block" : "none";
+        }
+        
+        function mostrarEjercicio(idEjercicio, nombreEjercicio, imagenEjercicio) {
+            fetch(`/api/obtener_series/${idEjercicio}/{{ fecha }}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    let dashboardContainer = document.querySelector(".dashboard-container");
+                    let detalleContainer = document.getElementById("detalle-ejercicio");
+
+                    if (!detalleContainer) {
+                        detalleContainer = document.createElement("div");
+                        detalleContainer.id = "detalle-ejercicio";
+                        dashboardContainer.appendChild(detalleContainer);
+                    }
+                    
+                    let ejercicioHTML = `<h2>${nombreEjercicio}</h2>`;
+                    if (imagenEjercicio) {
+                        ejercicioHTML += `<img src="${imagenEjercicio}" alt="${nombreEjercicio}" style="max-width:300px;">`;
+                    }
+                    ejercicioHTML += `<ul>`;
+                    data.series.forEach(serie => {
+                        ejercicioHTML += `<li>Serie ${serie.serie}: ${serie.repeticiones} repeticiones - ${serie.peso} kg</li>`;
+                    });
+                    ejercicioHTML += `</ul>`;
+                    detalleContainer.innerHTML = ejercicioHTML;
+                })
+                .catch(error => console.error("Error al obtener los datos:", error));
+        }
+    </script>
+</body>
+</html>
