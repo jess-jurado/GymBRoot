@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Crear Rutina - GymApp</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_crear_rutina.css') }}">
 </head>
 <body>
   <div class="crear-rutina-container">
     <h1>Crear Nueva Rutina</h1>
 
     <div>
-      <label for="nombre_rutina">Nombre de la Rutina:</label><br>
-      <input type="text" id="nombre_rutina" required>
+      <label for="nombre_rutina"><h3>Nombre de la Rutina:</h3></label>
+      <input type="text" id="nombre_rutina" required><br>
     </div>
 
     <h2>Selecciona el Día</h2>

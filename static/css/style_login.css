@@ -1,0 +1,91 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Estilo del encabezado */
+header {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    width: 80%;
+    max-width: 900px;
+    margin: 20px auto;
+    border-radius: 10px;
+}
+
+/* Contenedor del formulario */
+.login-container {
+    background: white;
+    width: 80%;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el formulario */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    text-align: left;
+    font-weight: bold;
+}
+
+input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+}
+
+/* Botón */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Mensajes de error y éxito */
+.flash-messages {
+    width: 80%;
+    max-width: 400px;
+    margin: 10px auto;
+}
+
+.alert {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+}
+
+.error {
+    background-color: red;
+}
+
+.success {
+    background-color: green;
+}

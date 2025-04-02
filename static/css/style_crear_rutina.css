@@ -1,0 +1,90 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+
+
+  .crear-rutina-container {
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  /* Botones de días, grupos y subgrupos */
+.day-btn, .group-btn, .subgroup-btn {
+    padding: 15px 20px;
+    margin: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .exercise {
+    display: inline-block;
+    margin: 10px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    padding: 5px;
+  }
+  
+  .exercise:hover {
+    border-color: #666;
+  }
+  
+  .exercise img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+  
+  #exercises-container {
+    margin-top: 20px;
+    display: none;
+  }
+
+  /* Botón de envío */
+#submit-routine {
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  #add-group {
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  
+  #submit-routine:hover {
+    background-color: #d32f2f;
+  }
+  

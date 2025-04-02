@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrenamientos Realizados - {{ fecha }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_entrenamientos_realizados.css') }}">
 </head>
 <body>
     <header>
@@ -25,6 +26,16 @@
     </script>
     
     <script>
+        // Función para generar un color aleatorio en formato hexadecimal
+        function obtenerColorAleatorio() {
+            const letras = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letras[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const entrenamientos = JSON.parse(document.getElementById("data-entrenamientos").textContent);
             const container = document.getElementById("grupo-muscular-container");
@@ -55,8 +66,11 @@
                 let grupoContainer = document.createElement("div");
                 grupoContainer.classList.add("grupo-container");
                 
-                let tituloGrupo = document.createElement("h2");
+                let tituloGrupo = document.createElement("button");
                 tituloGrupo.textContent = grupo;
+                tituloGrupo.classList.add("ejercicio-btn");
+                tituloGrupo.style.backgroundColor = obtenerColorAleatorio(); // Color aleatorio para el grupo
+                tituloGrupo.style.color = "white"; // Asegura que el texto sea legible
                 tituloGrupo.style.cursor = "pointer";
                 tituloGrupo.onclick = () => toggleSubgrupo(subgruposContainer);
                 grupoContainer.appendChild(tituloGrupo);
@@ -69,8 +83,11 @@
                     let subgrupoContainer = document.createElement("div");
                     subgrupoContainer.classList.add("subgrupo-container");
                     
-                    let tituloSubgrupo = document.createElement("h3");
+                    let tituloSubgrupo = document.createElement("button");
                     tituloSubgrupo.textContent = subgrupo;
+                    tituloSubgrupo.classList.add("ejercicio-btn");
+                    tituloSubgrupo.style.backgroundColor = obtenerColorAleatorio(); // Color aleatorio para el grupo
+                    tituloSubgrupo.style.color = "white"; // Asegura que el texto sea legible
                     tituloSubgrupo.style.cursor = "pointer";
                     tituloSubgrupo.onclick = () => toggleEjercicios(ejerciciosContainer);
                     subgrupoContainer.appendChild(tituloSubgrupo);
@@ -82,7 +99,10 @@
                     estructura[grupo][subgrupo].forEach(ejercicio => {
                         let btn = document.createElement("button");
                         btn.textContent = ejercicio.nombre;
+                        btn.classList.add("ejercicio-btn");
                         btn.classList.add("ejercicio-view-btn");
+                        btn.style.backgroundColor = obtenerColorAleatorio(); // Color aleatorio para el ejercicio
+                        btn.style.color = "white"; // Asegura que el texto sea legible
                         btn.onclick = () => mostrarEjercicio(ejercicio.id, ejercicio.nombre, ejercicio.imagen);
                         ejerciciosContainer.appendChild(btn);
                     });

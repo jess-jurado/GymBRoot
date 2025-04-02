@@ -328,12 +328,16 @@ def guardar_series(ejercicio_id):
 
 @app.route('/api/obtener_fechas_entrenamiento', methods=['GET'])
 def obtener_fechas_entrenamiento():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Usuario no autenticado"}), 401
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Consultar las fechas únicas de entrenamiento en la tabla Series
-    query = "SELECT DISTINCT Fecha FROM Historial ORDER BY Fecha ASC"
-    cursor.execute(query)
+    # Filtrar por Usuario_id para obtener solo sus entrenamientos
+    query = "SELECT DISTINCT Fecha FROM Historial WHERE Usuario_id = ? ORDER BY Fecha ASC"
+    cursor.execute(query, (user_id,))
     
     # Obtener los resultados y convertirlos a una lista
     fechas = [row[0].split(" ")[0] for row in cursor.fetchall()]  # Solo tomamos la parte de la fecha
@@ -342,6 +346,7 @@ def obtener_fechas_entrenamiento():
     conn.close()
 
     return jsonify({"fechas": fechas})
+
 
 @app.route('/api/obtener_series/<int:ejercicio_id>/<fecha>', methods=['GET'])
 def obtener_series(ejercicio_id, fecha):
@@ -383,15 +388,15 @@ def entrenamientos_realizados(fecha):
 
     # Buscar ejercicios realizados ese día por el usuario
     query = """
-        SELECT DISTINCT e.id, e.Nombre_ejercicio, e.Subgrupo_muscular, e.Grupo_muscular
+        SELECT DISTINCT e.id, e.Nombre_ejercicio, e.Subgrupo_muscular, e.Grupo_muscular, e.imagen_url
         FROM Historial h
         JOIN Ejercicios e ON h.Id_ejercicio = e.id
         WHERE h.Fecha LIKE ? AND h.Usuario_id = ?
     """
     cursor.execute(query, (f"{fecha}%", user_id))
-    
+
     ejercicios = [
-        {"id": row[0], "nombre": row[1], "subgrupo": row[2], "grupo": row[3]} 
+        {"id": row[0], "nombre": row[1], "subgrupo": row[2], "grupo": row[3], "imagen": buscar_imagen_en_cloudinary(row[4])} 
         for row in cursor.fetchall()
     ]
 
@@ -399,8 +404,6 @@ def entrenamientos_realizados(fecha):
     conn.close()
 
     return render_template("entrenamientos_realizados.html", ejercicios=ejercicios, fecha=fecha, user_id=user_id)
-
-
 
 
 # Registrar las rutas

@@ -336,3 +336,15 @@ header {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
+
+.grupo-container button {
+  margin-bottom: 10px; /* Espacio entre grupo y subgrupo */
+}
+
+.subgrupo-container button {
+  margin-bottom: 8px; /* Espacio entre subgrupo y ejercicios */
+}
+
+.ejercicios-container button {
+  margin: 5px; /* Espacio entre ejercicios */
+}
